@@ -7,7 +7,7 @@ class Mover(Node):
     """
     A very simple Roamer implementation for LIMO.
     It simply goes straight until any obstacle is within
-    2 m distance and then just simply turns left.
+    turns right.
     A purely reactive approach.
     """
     def __init__(self):
