@@ -41,7 +41,7 @@ class ObjectDetector(Node):
         self.coordinates = []
 
     def get_tf_transform(self, target_frame, source_frame):
-        try:
+        try:             # Look up the transform between target_frame and source_frame
             transform = self.tf_buffer.lookup_transform(target_frame, source_frame, rclpy.time.Time())
             return transform
         except Exception as e:
@@ -49,7 +49,7 @@ class ObjectDetector(Node):
             return None
 
     def camera_info_callback(self, data):
-        if not self.camera_model:
+        if not self.camera_model:             # Initialize camera model from camera info
             self.camera_model = image_geometry.PinholeCameraModel()
         self.camera_model.fromCameraInfo(data)
 
@@ -61,31 +61,33 @@ class ObjectDetector(Node):
             return
         if self.image_depth_ros is None:
             return
-        try:
+        try:             # Convert color and depth images from ROS messages to OpenCV format
             image_color = self.bridge.imgmsg_to_cv2(data, "bgr8")
             image_depth = self.bridge.imgmsg_to_cv2(self.image_depth_ros, "32FC1")
         except CvBridgeError as e:
             print(e)
 
-        hsv = cv2.cvtColor(image_color, cv2.COLOR_BGR2HSV)
-        lower_pink = np.array([150, 50, 50])
+        hsv = cv2.cvtColor(image_color, cv2.COLOR_BGR2HSV)         # Convert color image to HSV space
+        lower_pink = np.array([150, 50, 50])# Define color range for pink in HSV space
         upper_pink = np.array([170, 255, 255])
-        image_mask = cv2.inRange(hsv, lower_pink, upper_pink)
+        image_mask = cv2.inRange(hsv, lower_pink, upper_pink)         # Create a mask for pink color
+                # Find contours of pink objects in the mask
         contours, _, = cv2.findContours(image_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
             M = cv2.moments(contour)
             if M["m00"] == 0:
                 return
-            image_coords = (M["m01"] / M["m00"], M["m10"] / M["m00"])
+            image_coords = (M["m01"] / M["m00"], M["m10"] / M["m00"])             # Calculate image coordinates of the object
             cv2.drawContours(image_color, [contour], -1, (0, 255, 0), 2)
+                        # Calculate depth coordinates using color image coordinates
             depth_coords = (image_depth.shape[0]/2 + (image_coords[0] - image_color.shape[0]/2)*self.color2depth_aspect,
                 image_depth.shape[1]/2 + (image_coords[1] - image_color.shape[1]/2)*self.color2depth_aspect)
-            depth_value = image_depth[int(depth_coords[0]), int(depth_coords[1])]
-            camera_coords = self.camera_model.projectPixelTo3dRay((image_coords[1], image_coords[0]))
+            depth_value = image_depth[int(depth_coords[0]), int(depth_coords[1])]             # Obtain depth value at the calculated depth coordinates
+            camera_coords = self.camera_model.projectPixelTo3dRay((image_coords[1], image_coords[0]))  # Project image coordinates to 3D camera coordinates
             camera_coords = [x/camera_coords[2] for x in camera_coords]
             camera_coords = [x*depth_value for x in camera_coords]
 
-            object_location = PoseStamped()
+            object_location = PoseStamped() # Create PoseStamped message with object location information
             object_location.header.frame_id = "depth_link"
             object_location.pose.orientation.w = 0.0
             object_location.pose.position.x = camera_coords[0]

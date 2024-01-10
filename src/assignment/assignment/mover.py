@@ -24,13 +24,13 @@ class Mover(Node):
         """
         Callback called any time a new laser scan become available
         """
-        min_dist = min(data.ranges[int(len(data.ranges)/2) -30 : int(len(data.ranges)/2) +30])
-        # print("Min: ", min_dist)
+        min_dist = min(data.ranges[int(len(data.ranges)/2) -30 : int(len(data.ranges)/2) +30])         # Extract the minimum distance from the center 60 degrees of the laser scan data
+        
         t = Twist()
-        if min_dist < 0.46:
-            t.angular.z = -0.5
+        if min_dist < 0.46: # Check if there is an obstacle within a certain distance
+            t.angular.z = -0.5             # If obstacle is detected, turn right
         else:
-            t.linear.x = 0.2
+            t.linear.x = 0.2                # If no obstacle, go straight
         self.publisher.publish(t)
 
 
