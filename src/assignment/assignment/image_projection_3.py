@@ -23,7 +23,7 @@ class PoseSubscriber(Node):
 
     def is_within_threshold(self, x, y):
         for coord in self.coordinates:
-            if self.calculate_distance(coord[0], coord[1], x, y) < 0.081:
+            if self.calculate_distance(coord[0], coord[1], x, y) < 0.077:
                 return True
         return False
 
