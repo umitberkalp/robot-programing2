@@ -77,6 +77,7 @@ class ObjectDetector(Node):
             M = cv2.moments(contour)
             if M["m00"] == 0:
                 return
+            #comment
             image_coords = (M["m01"] / M["m00"], M["m10"] / M["m00"])             # Calculate image coordinates of the object
             cv2.drawContours(image_color, [contour], -1, (0, 255, 0), 2)
                         # Calculate depth coordinates using color image coordinates
