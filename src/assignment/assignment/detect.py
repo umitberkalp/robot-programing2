@@ -74,6 +74,7 @@ class ObjectDetector(Node):
                 # Find contours of pink objects in the mask
         contours, _, = cv2.findContours(image_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         for contour in contours:
+            area = cv2.contourArea(contour)
             M = cv2.moments(contour)
             if M["m00"] == 0:
                 return
@@ -96,6 +97,9 @@ class ObjectDetector(Node):
             object_location.pose.position.z = camera_coords[2]
             object_location.pose.orientation.w = 0.0
             self.object_location_pub.publish(object_location)  
+
+            print("coords", camera_coords)
+            print("area", area)
 
         #print("coords : ", camera_coords)
         cv2.imshow("image color", image_color)
